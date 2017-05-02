@@ -2,8 +2,6 @@
 
 source /home/ubuntu/scripts/admin-openrc.sh
 public_ip=$(hostname -I | xargs)
-#export OS_AUTH_URL="http://$public_ip:35357/v3/"
-#echo "OS_AUTH_URL=$OS_AUTH_URL"
 
 pyc_files="/opt/stack/horizon/openstack_dashboard/local/local_settings.pyc "`
 	`"/opt/stack/monasca-ui/monitoring/config/local_settings.pyc"
@@ -33,14 +31,5 @@ do
 done
 
 sudo systemctl start mysql
-sudo systemctl start apache2
 
-# Configure endpoints
-service_ids=$(openstack endpoint list -c ID -f value)
-for service in $service_ids
-do
-        new_url=$(openstack endpoint show -c url -f value $service |sed "s/144\.217\.244\.18/$public_ip/")
-        openstack endpoint set --url $new_url $service
-done
-
-
+/home/ubuntu/scripts/update-endpoints.py --username root --password secretmysql --host localhost --endpoint $public_ip

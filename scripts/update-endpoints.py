@@ -21,15 +21,17 @@ def main(dbhost, username, password, new_endpoint, endpoint_type=None):
     where_clause = ''
     if endpoint_type:
         where_clause = "where interface='%s'" % endpoint_type
-    cur.execute("select id, url from endpoint '%s'" % where_clause)
+    cur.execute("select id, url from endpoint %s" % where_clause)
     for row in cur.fetchall():
         url = str(row[1])
         endpoint_id = str(row[0])
         try:
             u = urlparse.urlparse(url)
             print "Changing %s to %s in URL %s" % (u.hostname,new_endpoint, url)
-            urlstring = "%s://%s:%s%s" % (u.scheme, new_endpoint, u.port,
-                u.path)
+            urlstring = "%s://%s" % (u.scheme, new_endpoint)
+            if u.port:
+                urlstring += ":%s" % u.port
+            urlstring += u.path
             cur.execute("""UPDATE endpoint
                             SET url=%s
                             WHERE id=%s
